@@ -1,0 +1,962 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Munteanu Sorin – Evaluator de Risc | Securitate Fizică</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;600;700&family=Barlow:wght@300;400;500;600&family=Barlow+Condensed:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --navy: #0a0f1e;
+    --navy-mid: #111827;
+    --navy-light: #1a2540;
+    --gold: #c8a84b;
+    --gold-light: #e2c97e;
+    --gold-pale: #f5e9c4;
+    --cream: #f7f4ee;
+    --gray: #8a8f9e;
+    --white: #ffffff;
+    --font-display: 'Cormorant Garamond', serif;
+    --font-body: 'Barlow', sans-serif;
+    --font-condensed: 'Barlow Condensed', sans-serif;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: var(--font-body);
+    background: var(--navy);
+    color: var(--white);
+    overflow-x: hidden;
+  }
+
+  /* ── NOISE TEXTURE OVERLAY ── */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.6;
+  }
+
+  /* ── NAV ── */
+  nav {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 100;
+    padding: 1.25rem 4rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: linear-gradient(to bottom, rgba(10,15,30,0.98), transparent);
+    backdrop-filter: blur(2px);
+  }
+
+  .nav-logo {
+    font-family: var(--font-condensed);
+    font-size: 1rem;
+    font-weight: 600;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: var(--gold);
+  }
+
+  .nav-links {
+    display: flex;
+    gap: 2.5rem;
+    list-style: none;
+  }
+
+  .nav-links a {
+    font-family: var(--font-condensed);
+    font-size: 0.85rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--gray);
+    text-decoration: none;
+    transition: color 0.3s;
+  }
+  .nav-links a:hover { color: var(--gold-light); }
+
+  /* ── HERO ── */
+  .hero {
+    position: relative;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    padding: 8rem 4rem 6rem;
+    overflow: hidden;
+  }
+
+  .hero-bg {
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 80% 60% at 70% 50%, rgba(200,168,75,0.07) 0%, transparent 70%),
+      radial-gradient(ellipse 50% 80% at 10% 80%, rgba(26,37,64,0.8) 0%, transparent 60%),
+      linear-gradient(135deg, #0a0f1e 0%, #111827 50%, #0d1520 100%);
+  }
+
+  .hero-grid {
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(200,168,75,0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(200,168,75,0.04) 1px, transparent 1px);
+    background-size: 60px 60px;
+    mask-image: radial-gradient(ellipse 80% 70% at 80% 50%, black 0%, transparent 70%);
+  }
+
+  .shield-bg {
+    position: absolute;
+    right: 6%;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 480px;
+    height: 480px;
+    opacity: 0.05;
+  }
+
+  .hero-content {
+    position: relative;
+    z-index: 2;
+    max-width: 680px;
+  }
+
+  .hero-tag {
+    font-family: var(--font-condensed);
+    font-size: 0.8rem;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+  .hero-tag::before {
+    content: '';
+    display: block;
+    width: 32px;
+    height: 1px;
+    background: var(--gold);
+  }
+
+  .hero-title {
+    font-family: var(--font-display);
+    font-size: clamp(3rem, 6vw, 5.5rem);
+    font-weight: 300;
+    line-height: 1.05;
+    margin-bottom: 0.5rem;
+    color: var(--white);
+    letter-spacing: -0.01em;
+  }
+
+  .hero-title strong {
+    font-weight: 700;
+    color: var(--gold-light);
+    display: block;
+  }
+
+  .hero-subtitle {
+    font-family: var(--font-condensed);
+    font-size: 1.1rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--gray);
+    margin: 1.5rem 0 2.5rem;
+  }
+
+  .hero-desc {
+    font-size: 1.05rem;
+    line-height: 1.8;
+    color: rgba(255,255,255,0.7);
+    max-width: 520px;
+    margin-bottom: 3rem;
+    font-weight: 300;
+  }
+
+  .hero-desc em {
+    color: var(--gold-pale);
+    font-style: normal;
+  }
+
+  .cta-row {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+
+  .btn-primary {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.9rem 2rem;
+    background: var(--gold);
+    color: var(--navy);
+    font-family: var(--font-condensed);
+    font-size: 0.9rem;
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    text-decoration: none;
+    border: none;
+    cursor: pointer;
+    transition: background 0.3s, transform 0.2s;
+  }
+  .btn-primary:hover { background: var(--gold-light); transform: translateY(-2px); }
+
+  .btn-outline {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.9rem 2rem;
+    background: transparent;
+    color: var(--gold);
+    font-family: var(--font-condensed);
+    font-size: 0.9rem;
+    font-weight: 600;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    text-decoration: none;
+    border: 1px solid rgba(200,168,75,0.4);
+    cursor: pointer;
+    transition: border-color 0.3s, color 0.3s, background 0.3s;
+  }
+  .btn-outline:hover { border-color: var(--gold); background: rgba(200,168,75,0.05); }
+
+  /* ── STATS BAND ── */
+  .stats-band {
+    position: relative;
+    z-index: 2;
+    background: var(--gold);
+    padding: 2.5rem 4rem;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2rem;
+  }
+
+  .stat-item { text-align: center; }
+
+  .stat-num {
+    font-family: var(--font-display);
+    font-size: 3.5rem;
+    font-weight: 700;
+    color: var(--navy);
+    line-height: 1;
+    display: block;
+  }
+
+  .stat-label {
+    font-family: var(--font-condensed);
+    font-size: 0.78rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: rgba(10,15,30,0.65);
+    margin-top: 0.4rem;
+    display: block;
+  }
+
+  /* ── SECTIONS ── */
+  section {
+    position: relative;
+    z-index: 1;
+  }
+
+  .section-inner {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 6rem 4rem;
+  }
+
+  .section-tag {
+    font-family: var(--font-condensed);
+    font-size: 0.75rem;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+  .section-tag::before {
+    content: '';
+    width: 24px;
+    height: 1px;
+    background: var(--gold);
+    display: block;
+  }
+
+  .section-title {
+    font-family: var(--font-display);
+    font-size: clamp(2rem, 4vw, 3.2rem);
+    font-weight: 300;
+    line-height: 1.15;
+    margin-bottom: 1.5rem;
+  }
+  .section-title strong { font-weight: 700; color: var(--gold-light); }
+
+  /* ── WHY ── */
+  .why-section { background: var(--navy-mid); }
+
+  .why-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4rem;
+    align-items: center;
+    margin-top: 3rem;
+  }
+
+  .why-copy p {
+    font-size: 1rem;
+    line-height: 1.85;
+    color: rgba(255,255,255,0.65);
+    font-weight: 300;
+    margin-bottom: 1.2rem;
+  }
+  .why-copy p strong { color: var(--gold-pale); font-weight: 500; }
+
+  .why-features {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+  }
+
+  .feature-card {
+    background: rgba(200,168,75,0.04);
+    border: 1px solid rgba(200,168,75,0.12);
+    padding: 1.5rem;
+    transition: border-color 0.3s, background 0.3s;
+  }
+  .feature-card:hover {
+    border-color: rgba(200,168,75,0.3);
+    background: rgba(200,168,75,0.07);
+  }
+
+  .feature-icon {
+    width: 36px;
+    height: 36px;
+    margin-bottom: 1rem;
+    color: var(--gold);
+  }
+
+  .feature-title {
+    font-family: var(--font-condensed);
+    font-size: 0.95rem;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--white);
+    margin-bottom: 0.5rem;
+  }
+
+  .feature-text {
+    font-size: 0.88rem;
+    line-height: 1.65;
+    color: var(--gray);
+    font-weight: 300;
+  }
+
+  /* ── SERVICES ── */
+  .services-section { background: var(--navy); }
+
+  .services-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+    margin-top: 3rem;
+  }
+
+  .service-card {
+    background: var(--navy-light);
+    border: 1px solid rgba(200,168,75,0.1);
+    padding: 2rem 1.75rem;
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.3s, border-color 0.3s;
+  }
+  .service-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0;
+    width: 3px;
+    height: 0;
+    background: var(--gold);
+    transition: height 0.4s;
+  }
+  .service-card:hover { transform: translateY(-4px); border-color: rgba(200,168,75,0.25); }
+  .service-card:hover::before { height: 100%; }
+
+  .service-num {
+    font-family: var(--font-display);
+    font-size: 3rem;
+    font-weight: 700;
+    color: rgba(200,168,75,0.12);
+    line-height: 1;
+    margin-bottom: 1rem;
+  }
+
+  .service-title {
+    font-family: var(--font-condensed);
+    font-size: 1rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--white);
+    margin-bottom: 0.75rem;
+  }
+
+  .service-text {
+    font-size: 0.88rem;
+    line-height: 1.7;
+    color: var(--gray);
+    font-weight: 300;
+  }
+
+  /* ── PERSUASION BAND ── */
+  .persuasion-band {
+    background: linear-gradient(135deg, #0f1a30 0%, #1a2540 100%);
+    border-top: 1px solid rgba(200,168,75,0.15);
+    border-bottom: 1px solid rgba(200,168,75,0.15);
+    padding: 5rem 4rem;
+    text-align: center;
+  }
+
+  .persuasion-band blockquote {
+    font-family: var(--font-display);
+    font-size: clamp(1.6rem, 3vw, 2.6rem);
+    font-weight: 300;
+    font-style: italic;
+    line-height: 1.4;
+    color: var(--white);
+    max-width: 750px;
+    margin: 0 auto 1.5rem;
+  }
+
+  .persuasion-band blockquote strong {
+    font-style: normal;
+    font-weight: 700;
+    color: var(--gold-light);
+  }
+
+  .persuasion-band cite {
+    font-family: var(--font-condensed);
+    font-size: 0.8rem;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: var(--gray);
+    font-style: normal;
+  }
+
+  /* ── CLIENTS ── */
+  .clients-section { background: var(--navy-mid); }
+
+  .clients-desc {
+    font-size: 1.05rem;
+    line-height: 1.85;
+    color: rgba(255,255,255,0.65);
+    max-width: 640px;
+    font-weight: 300;
+    margin-bottom: 3rem;
+  }
+
+  .client-types {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1px;
+    background: rgba(200,168,75,0.1);
+    border: 1px solid rgba(200,168,75,0.1);
+    margin-bottom: 3rem;
+  }
+
+  .client-type {
+    background: var(--navy-mid);
+    padding: 1.75rem 1.25rem;
+    text-align: center;
+    transition: background 0.3s;
+  }
+  .client-type:hover { background: rgba(200,168,75,0.05); }
+
+  .client-type-icon {
+    font-size: 1.75rem;
+    margin-bottom: 0.75rem;
+    display: block;
+  }
+
+  .client-type-name {
+    font-family: var(--font-condensed);
+    font-size: 0.82rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--gray);
+  }
+
+  .trust-bar {
+    display: flex;
+    align-items: center;
+    gap: 2rem;
+    flex-wrap: wrap;
+  }
+
+  .trust-item {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    font-family: var(--font-condensed);
+    font-size: 0.85rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--gray);
+  }
+
+  .trust-dot {
+    width: 6px;
+    height: 6px;
+    background: var(--gold);
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  /* ── CONTACT ── */
+  .contact-section { background: var(--navy); }
+
+  .contact-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 5rem;
+    align-items: start;
+    margin-top: 3rem;
+  }
+
+  .contact-copy p {
+    font-size: 1rem;
+    line-height: 1.85;
+    color: rgba(255,255,255,0.6);
+    font-weight: 300;
+    margin-bottom: 2rem;
+  }
+
+  .contact-methods { display: flex; flex-direction: column; gap: 1rem; }
+
+  .contact-method {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1.25rem 1.5rem;
+    border: 1px solid rgba(200,168,75,0.15);
+    background: rgba(200,168,75,0.03);
+    text-decoration: none;
+    transition: border-color 0.3s, background 0.3s;
+  }
+  .contact-method:hover { border-color: rgba(200,168,75,0.35); background: rgba(200,168,75,0.07); }
+
+  .contact-method-icon {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(200,168,75,0.12);
+    color: var(--gold);
+    flex-shrink: 0;
+  }
+
+  .contact-method-label {
+    font-family: var(--font-condensed);
+    font-size: 0.75rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--gray);
+    display: block;
+    margin-bottom: 0.2rem;
+  }
+
+  .contact-method-value {
+    font-size: 1rem;
+    font-weight: 500;
+    color: var(--white);
+    display: block;
+  }
+
+  /* ── FORM ── */
+  .contact-form { display: flex; flex-direction: column; gap: 1rem; }
+
+  .form-group { display: flex; flex-direction: column; gap: 0.4rem; }
+
+  .form-label {
+    font-family: var(--font-condensed);
+    font-size: 0.75rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--gray);
+  }
+
+  .form-input, .form-textarea {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(200,168,75,0.15);
+    color: var(--white);
+    font-family: var(--font-body);
+    font-size: 0.95rem;
+    padding: 0.85rem 1.1rem;
+    outline: none;
+    transition: border-color 0.3s;
+    resize: none;
+    width: 100%;
+  }
+  .form-input:focus, .form-textarea:focus { border-color: rgba(200,168,75,0.5); }
+  .form-input::placeholder, .form-textarea::placeholder { color: rgba(255,255,255,0.2); }
+
+  /* ── FOOTER ── */
+  footer {
+    background: #060a12;
+    padding: 2.5rem 4rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-top: 1px solid rgba(200,168,75,0.08);
+  }
+
+  .footer-brand {
+    font-family: var(--font-display);
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: var(--gold);
+  }
+
+  .footer-copy {
+    font-size: 0.8rem;
+    color: var(--gray);
+    font-weight: 300;
+  }
+
+  /* ── ANIMATIONS ── */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes drawLine {
+    from { width: 0; }
+    to { width: 100%; }
+  }
+
+  .hero-tag { animation: fadeUp 0.8s ease 0.2s both; }
+  .hero-title { animation: fadeUp 0.8s ease 0.4s both; }
+  .hero-subtitle { animation: fadeUp 0.8s ease 0.55s both; }
+  .hero-desc { animation: fadeUp 0.8s ease 0.7s both; }
+  .cta-row { animation: fadeUp 0.8s ease 0.85s both; }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 900px) {
+    nav { padding: 1.25rem 2rem; }
+    .nav-links { display: none; }
+    .hero { padding: 7rem 2rem 4rem; }
+    .stats-band { padding: 2rem; grid-template-columns: repeat(3,1fr); gap: 1rem; }
+    .section-inner { padding: 4rem 2rem; }
+    .why-grid { grid-template-columns: 1fr; gap: 2.5rem; }
+    .why-features { grid-template-columns: 1fr; }
+    .services-grid { grid-template-columns: 1fr; }
+    .client-types { grid-template-columns: repeat(2,1fr); }
+    .contact-grid { grid-template-columns: 1fr; gap: 2.5rem; }
+    footer { flex-direction: column; gap: 1rem; text-align: center; padding: 2rem; }
+    .shield-bg { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-logo">Securitate · Evaluare · Risc</div>
+  <ul class="nav-links">
+    <li><a href="#despre">Despre</a></li>
+    <li><a href="#servicii">Servicii</a></li>
+    <li><a href="#clienti">Clienți</a></li>
+    <li><a href="#contact">Contact</a></li>
+  </ul>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-grid"></div>
+
+  <!-- Shield SVG background -->
+  <svg class="shield-bg" viewBox="0 0 200 220" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M100 5 L185 40 L185 110 C185 155 147 195 100 215 C53 195 15 155 15 110 L15 40 Z" fill="white"/>
+    <path d="M100 25 L170 53 L170 110 C170 147 138 182 100 198 C62 182 30 147 30 110 L30 53 Z" fill="none" stroke="white" stroke-width="2"/>
+    <path d="M75 105 L93 123 L128 88" stroke="white" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+  </svg>
+
+  <div class="hero-content">
+    <div class="hero-tag">Expert certificat · Securitate fizică</div>
+    <h1 class="hero-title">
+      Munteanu<br>
+      <strong>Sorin</strong>
+    </h1>
+    <p class="hero-subtitle">Evaluator de Risc la Securitate Fizică</p>
+    <p class="hero-desc">
+      Protecția afacerii tale nu este un cost — este <em>cea mai inteligentă investiție</em> pe care o poți face.
+      Cu peste <em>10 ani de experiență</em> și mai mult de <em>1.000 de clienți mulțumiți</em>,
+      îți ofer certitudinea că ești protejat de riscuri înainte ca acestea să devină probleme reale.
+    </p>
+    <div class="cta-row">
+      <a href="#contact" class="btn-primary">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.6 1.18h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.37a16 16 0 0 0 6 6l.94-.94a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+        Solicită o evaluare
+      </a>
+      <a href="#servicii" class="btn-outline">Descoperă serviciile →</a>
+    </div>
+  </div>
+</section>
+
+<!-- STATS BAND -->
+<div class="stats-band">
+  <div class="stat-item">
+    <span class="stat-num">1000<sup style="font-size:1.5rem">+</sup></span>
+    <span class="stat-label">Clienți evaluați cu succes</span>
+  </div>
+  <div class="stat-item">
+    <span class="stat-num">10<sup style="font-size:1.5rem">+</sup></span>
+    <span class="stat-label">Ani de experiență în domeniu</span>
+  </div>
+  <div class="stat-item">
+    <span class="stat-num">100<sup style="font-size:1.5rem">%</sup></span>
+    <span class="stat-label">Conformitate cu legislația în vigoare</span>
+  </div>
+</div>
+
+<!-- WHY SECTION -->
+<section id="despre" class="why-section">
+  <div class="section-inner">
+    <div class="section-tag">De ce eu?</div>
+    <h2 class="section-title">Nu toți evaluatorii <strong>sunt la fel</strong></h2>
+
+    <div class="why-grid">
+      <div class="why-copy">
+        <p>Fiecare afacere, instituție sau proprietate are vulnerabilități specifice. <strong>Un ochi neantrenat nu le vede — eu da.</strong> De-a lungul carierei mele, am evaluat mii de obiective din Vaslui și din întreaga țară, identificând riscuri pe care alții le ignoră.</p>
+        <p>Clienții mei dorm liniștiți nu pentru că au noroc, ci pentru că <strong>au luat decizia corectă</strong>: o evaluare profesională, completă și adaptată realităților lor concrete.</p>
+        <p>Nu lucrez cu șabloane. Fiecare raport de evaluare este construit de la zero, pe baza specificului tău. Acesta este standardul meu — și motivul pentru care clienții revin și mă recomandă.</p>
+        <div style="margin-top:2rem;">
+          <a href="https://www.facebook.com/Evaluator-Risc-Vaslui" target="_blank" class="btn-outline">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+            Facebook: Evaluator Risc Vaslui
+          </a>
+        </div>
+      </div>
+
+      <div class="why-features">
+        <div class="feature-card">
+          <svg class="feature-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+          </svg>
+          <div class="feature-title">Expertiză certificată</div>
+          <p class="feature-text">Calificări oficiale și cunoaștere profundă a legislației în domeniul securității fizice.</p>
+        </div>
+        <div class="feature-card">
+          <svg class="feature-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+          </svg>
+          <div class="feature-title">Răspuns rapid</div>
+          <p class="feature-text">Evaluare programată prompt, cu respectarea termenelor și livrarea documentației la timp.</p>
+        </div>
+        <div class="feature-card">
+          <svg class="feature-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+          </svg>
+          <div class="feature-title">Portofoliu solid</div>
+          <p class="feature-text">Peste 1.000 de clienți — instituții de stat, firme private, obiective comerciale și industriale.</p>
+        </div>
+        <div class="feature-card">
+          <svg class="feature-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
+          </svg>
+          <div class="feature-title">Conformitate garantată</div>
+          <p class="feature-text">Documentele emise respectă integral cerințele legale, eliminând riscul amenzilor și sancțiunilor.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PERSUASION BAND -->
+<div class="persuasion-band">
+  <blockquote>
+    „Riscul pe care nu îl cunoști<br>
+    este <strong>cel mai periculos risc.</strong>"
+  </blockquote>
+  <cite>— Principiu fundamental în securitatea fizică</cite>
+</div>
+
+<!-- SERVICES -->
+<section id="servicii" class="services-section">
+  <div class="section-inner">
+    <div class="section-tag">Ce ofer</div>
+    <h2 class="section-title">Servicii de <strong>evaluare profesională</strong></h2>
+
+    <div class="services-grid">
+      <div class="service-card">
+        <div class="service-num">01</div>
+        <div class="service-title">Evaluare risc securitate fizică</div>
+        <p class="service-text">Analiza completă a vulnerabilităților unui obiectiv, identificarea amenințărilor și propunerea măsurilor de protecție conform legislației în vigoare.</p>
+      </div>
+      <div class="service-card">
+        <div class="service-num">02</div>
+        <div class="service-title">Plan de securitate</div>
+        <p class="service-text">Elaborarea documentației complete de securitate, adaptată specificului obiectivului — fie că este o firmă, instituție sau spațiu comercial.</p>
+      </div>
+      <div class="service-card">
+        <div class="service-num">03</div>
+        <div class="service-title">Consultanță și îndrumare</div>
+        <p class="service-text">Sprijin direct pentru conformarea cu cerințele legale ale Legii nr. 333/2003 și normele de aplicare, fără birocrație inutilă.</p>
+      </div>
+      <div class="service-card">
+        <div class="service-num">04</div>
+        <div class="service-title">Evaluări pentru instituții publice</div>
+        <p class="service-text">Experiență vastă cu primării, școli, spitale, judecătorii și alte entități publice care au obligații specifice de securitate.</p>
+      </div>
+      <div class="service-card">
+        <div class="service-num">05</div>
+        <div class="service-title">Evaluări firme private</div>
+        <p class="service-text">Soluții personalizate pentru companii de toate dimensiunile — de la IMM-uri locale până la firme cu operațiuni la nivel național.</p>
+      </div>
+      <div class="service-card">
+        <div class="service-num">06</div>
+        <div class="service-title">Actualizare documentație</div>
+        <p class="service-text">Re-evaluarea periodică a planurilor de securitate existente, necesară la schimbarea activității, extindere sau modificarea legislației.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CLIENTS -->
+<section id="clienti" class="clients-section">
+  <div class="section-inner">
+    <div class="section-tag">Portofoliu</div>
+    <h2 class="section-title">Peste <strong>1.000 de clienți</strong><br>care au ales siguranța</h2>
+
+    <p class="clients-desc">
+      Activez atât în județul Vaslui cât și la nivel național. Clienții mei provin din toate sectoarele economice și instituționale, unii colaborând cu mine de ani de zile. Cel mai bun indicator al calității muncii mele este încrederea repetată pe care mi-o acordă.
+    </p>
+
+    <div class="client-types">
+      <div class="client-type">
+        <span class="client-type-icon">🏛️</span>
+        <span class="client-type-name">Instituții publice</span>
+      </div>
+      <div class="client-type">
+        <span class="client-type-icon">🏭</span>
+        <span class="client-type-name">Firme industriale</span>
+      </div>
+      <div class="client-type">
+        <span class="client-type-icon">🏪</span>
+        <span class="client-type-name">Spații comerciale</span>
+      </div>
+      <div class="client-type">
+        <span class="client-type-icon">🏥</span>
+        <span class="client-type-name">Unități medicale</span>
+      </div>
+    </div>
+
+    <div class="trust-bar">
+      <div class="trust-item"><span class="trust-dot"></span> Vaslui și județe limitrofe</div>
+      <div class="trust-item"><span class="trust-dot"></span> Clienți din toată țara</div>
+      <div class="trust-item"><span class="trust-dot"></span> Recomandare directă</div>
+      <div class="trust-item"><span class="trust-dot"></span> Relații de lungă durată</div>
+    </div>
+  </div>
+</section>
+
+<!-- SECOND PERSUASION BAND -->
+<div class="persuasion-band" style="background: linear-gradient(135deg, #0c1520 0%, #0f1a2e 100%);">
+  <blockquote>
+    „Nu îți poți permite să aștepți<br>
+    un incident pentru a lua <strong>măsuri de protecție.</strong>"
+  </blockquote>
+  <cite>— Munteanu Sorin · Evaluator de Risc</cite>
+</div>
+
+<!-- CONTACT -->
+<section id="contact" class="contact-section">
+  <div class="section-inner">
+    <div class="section-tag">Contactează-mă</div>
+    <h2 class="section-title">Hai să discutăm despre<br><strong>siguranța ta</strong></h2>
+
+    <div class="contact-grid">
+      <div class="contact-copy">
+        <p>
+          Prima discuție nu costă nimic. Îți explic exact de ce ai nevoie, ce presupune procesul și cât durează. Fără angajamente, fără surprize.
+          <br><br>
+          Mă poți contacta telefonic, pe WhatsApp sau pe Facebook. Răspund rapid și îmi adaptez programul nevoilor tale.
+        </p>
+
+        <div class="contact-methods">
+          <a href="tel:0741216108" class="contact-method">
+            <div class="contact-method-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.6 1.18h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.37a16 16 0 0 0 6 6l.94-.94a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/>
+              </svg>
+            </div>
+            <div>
+              <span class="contact-method-label">Telefon / WhatsApp</span>
+              <span class="contact-method-value">0741 216 108</span>
+            </div>
+          </a>
+
+          <a href="https://www.facebook.com/Evaluator-Risc-Vaslui" target="_blank" class="contact-method">
+            <div class="contact-method-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+              </svg>
+            </div>
+            <div>
+              <span class="contact-method-label">Facebook</span>
+              <span class="contact-method-value">Evaluator Risc Vaslui</span>
+            </div>
+          </a>
+        </div>
+      </div>
+
+      <div>
+        <div class="contact-form">
+          <div class="form-group">
+            <label class="form-label">Numele tău</label>
+            <input type="text" class="form-input" placeholder="Ion Popescu">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Telefon</label>
+            <input type="tel" class="form-input" placeholder="07xx xxx xxx">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Tipul obiectivului</label>
+            <input type="text" class="form-input" placeholder="ex: firmă, instituție, spațiu comercial">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Mesaj (opțional)</label>
+            <textarea class="form-textarea" rows="4" placeholder="Descrie pe scurt ce ai nevoie..."></textarea>
+          </div>
+          <a href="tel:0741216108" class="btn-primary" style="justify-content:center; margin-top:0.5rem;">
+            Sună acum · 0741 216 108
+          </a>
+          <p style="font-size:0.78rem; color: var(--gray); text-align:center; margin-top:0.5rem;">sau completează formularul și te sun eu</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-brand">Munteanu Sorin</div>
+  <div class="footer-copy">Evaluator de Risc · Securitate Fizică · Vaslui &amp; Național</div>
+  <div class="footer-copy">© 2025 · Toate drepturile rezervate</div>
+</footer>
+
+</body>
+</html>
